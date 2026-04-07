@@ -632,4 +632,114 @@ export const mcpCategories: Category[] = [
       },
     ],
   },
+
+  // ── AI & ML ──
+  {
+    name: 'AI & ML',
+    emoji: '■',
+    color: '#8b8d98',
+    connectors: [
+      {
+        name: 'Anthropic Claude',
+        type: 'mcp',
+        actions: ['create_message', 'count_tokens', 'list_models', 'retrieve_message_batch', 'create_message_batch'],
+        chains: {
+          create_message: chain('Send a message to Claude', 'Claude', 'create_message'),
+          count_tokens: chain('Count tokens', 'Claude', 'count_tokens'),
+        },
+      },
+      {
+        name: 'Hugging Face',
+        type: 'mcp',
+        actions: ['search_models', 'get_model_info', 'run_inference', 'list_datasets', 'search_spaces'],
+        chains: {
+          search_models: chain('Search HF models', 'Hugging Face', 'search_models'),
+          run_inference: chain('Run model inference', 'Hugging Face', 'run_inference'),
+        },
+      },
+      {
+        name: 'Weights & Biases',
+        type: 'mcp',
+        actions: ['log_run', 'get_run', 'list_runs', 'create_sweep', 'get_artifact'],
+        chains: {
+          list_runs: chain('List W&B runs', 'W&B', 'list_runs'),
+        },
+      },
+      {
+        name: 'Replicate',
+        type: 'mcp',
+        actions: ['create_prediction', 'get_prediction', 'list_models', 'search_models', 'get_model'],
+        chains: {
+          create_prediction: chain('Run a Replicate prediction', 'Replicate', 'create_prediction'),
+        },
+      },
+      {
+        name: 'LangSmith',
+        type: 'mcp',
+        actions: ['list_runs', 'get_run', 'list_datasets', 'create_dataset', 'get_feedback'],
+        chains: {
+          list_runs: chain('List LangSmith runs', 'LangSmith', 'list_runs'),
+        },
+      },
+      {
+        name: 'Cohere',
+        type: 'mcp',
+        actions: ['chat', 'embed', 'rerank', 'classify', 'summarize'],
+        chains: {
+          chat: chain('Chat with Cohere', 'Cohere', 'chat'),
+        },
+      },
+    ],
+  },
+
+  // ── Claude Tools ──
+  {
+    name: 'Claude Tools',
+    emoji: '■',
+    color: '#da7756',
+    connectors: [
+      {
+        name: 'Claude Code',
+        type: 'mcp',
+        actions: ['run_command', 'edit_file', 'read_file', 'search_codebase', 'create_commit'],
+        chains: {
+          run_command: chain('Run a CLI command', 'Claude Code', 'run_command'),
+          edit_file: chain('Edit a file', 'Claude Code', 'edit_file'),
+        },
+      },
+      {
+        name: 'Claude Desktop',
+        type: 'mcp',
+        actions: ['create_project', 'list_conversations', 'search_conversations', 'get_artifacts', 'export_artifact'],
+        chains: {
+          create_project: chain('Create a Claude project', 'Claude Desktop', 'create_project'),
+        },
+      },
+      {
+        name: 'Anthropic Console',
+        type: 'mcp',
+        actions: ['list_api_keys', 'get_usage', 'get_rate_limits', 'list_workspaces', 'get_billing'],
+        chains: {
+          get_usage: chain('Get API usage', 'Console', 'get_usage'),
+          get_rate_limits: chain('Check rate limits', 'Console', 'get_rate_limits'),
+        },
+      },
+      {
+        name: 'Claude MCP Registry',
+        type: 'mcp',
+        actions: ['search_servers', 'get_server_info', 'list_categories', 'get_install_config', 'verify_server'],
+        chains: {
+          search_servers: chain('Search MCP servers', 'MCP Registry', 'search_servers'),
+        },
+      },
+      {
+        name: 'Claude Prompt Cache',
+        type: 'mcp',
+        actions: ['create_cached_prompt', 'list_cached_prompts', 'get_cache_stats', 'invalidate_cache'],
+        chains: {
+          create_cached_prompt: chain('Cache a prompt', 'Prompt Cache', 'create_cached_prompt'),
+        },
+      },
+    ],
+  },
 ]
