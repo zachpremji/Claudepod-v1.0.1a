@@ -37,3 +37,13 @@ export interface TraceState {
   chain: ChainNode[]
   status: 'idle' | 'running' | 'complete'
 }
+
+export interface ChatMessage {
+  id: string
+  role: 'user' | 'bot'
+  text: string
+  connectorName?: string
+  chain?: ChainNode[]
+  status?: 'running' | 'complete'
+  timestamp: number
+}
