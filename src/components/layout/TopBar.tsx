@@ -1,7 +1,7 @@
 import { useStore } from '../../store/useStore'
 
 export function TopBar() {
-  const { toggleSidebar, sidebarOpen, clearMessages, messages } = useStore()
+  const { toggleSidebar, sidebarOpen, clearMessages, messages, isResponding } = useStore()
 
   return (
     <header className="bg-pod-surface border-b border-pod px-4 py-2.5 flex items-center justify-between">
@@ -23,14 +23,15 @@ export function TopBar() {
           ClaudePod
         </h1>
         <span className="font-mono text-[10px] text-text-dim bg-pod-raised px-2 py-0.5 rounded border border-pod">
-          v0.1.0-alpha
+          v1.0.1-alpha
         </span>
       </div>
 
       <div className="flex items-center gap-3 font-mono text-[11px] text-text-muted">
-        <span><span className="text-pod-accent-light font-semibold">62</span> connectors</span>
-        <span><span className="text-pod-accent-light font-semibold">420+</span> actions</span>
-        {messages.length > 0 && (
+        {isResponding && (
+          <span className="text-pod-amber">responding...</span>
+        )}
+        {messages.length > 0 && !isResponding && (
           <button
             onClick={clearMessages}
             className="ml-2 px-2 py-1 text-[10px] text-text-dim hover:text-text-muted bg-pod-raised border border-pod rounded-md transition-colors"

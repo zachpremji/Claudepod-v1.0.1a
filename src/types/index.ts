@@ -28,7 +28,6 @@ export interface Category {
 export interface QuickPrompt {
   tag: string
   text: string
-  chain: ChainNode[]
 }
 
 export interface TraceState {
@@ -38,12 +37,19 @@ export interface TraceState {
   status: 'idle' | 'running' | 'complete'
 }
 
+// Tool use info displayed in chat
+export interface ToolUseInfo {
+  id: string
+  name: string
+  input: Record<string, unknown>
+  result?: string
+}
+
 export interface ChatMessage {
   id: string
-  role: 'user' | 'bot'
+  role: 'user' | 'assistant'
   text: string
-  connectorName?: string
-  chain?: ChainNode[]
-  status?: 'running' | 'complete'
+  toolUse?: ToolUseInfo[]
+  isStreaming?: boolean
   timestamp: number
 }

@@ -8,10 +8,10 @@ export function ChatView() {
   const messages = useStore((s) => s.messages)
   const bottomRef = useRef<HTMLDivElement>(null)
 
-  // Auto-scroll to bottom on new messages
+  // Auto-scroll on new messages and streaming updates
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [messages.length])
+  }, [messages])
 
   return (
     <div className="flex flex-col h-full">

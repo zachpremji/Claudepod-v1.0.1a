@@ -4,7 +4,9 @@
   "version": "0.1.0-alpha",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "concurrently \"vite\" \"cd server && npm run dev\"",
+    "dev:frontend": "vite",
+    "dev:server": "cd server && npm run dev",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "test": "vitest run",
@@ -17,6 +19,7 @@
     "zustand": "^4.5.0"
   },
   "devDependencies": {
+    "concurrently": "^9.0.0",
     "@types/react": "^18.3.0",
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react": "^4.3.0",
