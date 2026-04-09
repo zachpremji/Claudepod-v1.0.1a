@@ -1,4 +1,6 @@
-# Claude Pod — Setup
+# Claude Pod — Developer Setup
+
+This is the one-time setup you do before deploying. Users never see this.
 
 ## Quick Start
 
@@ -15,38 +17,43 @@ npm install
 npm run dev
 ```
 
-Open **http://localhost:5173** — you can chat with Claude right away.
+Open **http://localhost:5173** — chat works immediately.
 
 ---
 
-## Connect Google (Gmail + Calendar)
+## Enable Google Sign-In (Gmail + Calendar)
 
-Run the setup script — it walks you through everything:
-
-```bash
-cd backend
-python setup_google.py
-```
-
-If you don't have a `credentials.json` yet, the script tells you exactly what to do:
+Users connect Google through a "Sign in with Google" button in the app. To enable it, you create OAuth credentials once:
 
 1. Go to [Google Cloud Console](https://console.cloud.google.com)
-2. Create a project → enable Gmail API + Calendar API
-3. Create an OAuth credential (Desktop app type) → download the JSON
-4. Save it as `backend/credentials.json`
-5. Re-run `python setup_google.py` → browser opens → sign in → done
+2. Create a project → search for and enable **Gmail API** + **Google Calendar API**
+3. Go to **APIs & Services → Credentials** → **Create Credentials → OAuth 2.0 Client ID**
+4. If prompted for a consent screen: choose External, add your app name and email, add yourself as a test user
+5. Application type: **Web application**
+6. Add authorized redirect URI: `http://localhost:8000/auth/google/callback`
+7. Copy the Client ID and Client Secret into `backend/.env`:
 
-## Connect ElevenLabs (voice)
+```
+GOOGLE_CLIENT_ID=xxxx.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=GOCSPX-xxxx
+```
 
-Optional — without it, browser TTS is used. To enable:
-
-1. Open the app → click the gear icon → Settings
-2. Paste your ElevenLabs API key → Save
+8. Restart the backend — users will now see "Sign in with Google" in Settings.
 
 ---
+
+## .env Reference
+
+```
+ANTHROPIC_API_KEY=sk-ant-...     # Required — powers all conversations
+GOOGLE_CLIENT_ID=...             # Optional — enables Google sign-in
+GOOGLE_CLIENT_SECRET=...         # Optional — enables Google sign-in
+```
+
+ElevenLabs is configured by users in the app Settings panel.
 
 ## Notes
 
 - Push-to-talk requires Chrome or Edge
-- SMS and Interac are stubbed (log only)
+- SMS and Interac are stubbed (log only, no real service)
 - Gmail and Calendar are real — they send actual emails and create events

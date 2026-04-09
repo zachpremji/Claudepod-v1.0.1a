@@ -122,40 +122,16 @@ export default function Settings({ isOpen, onClose, authStatus, onRefreshAuth }:
               ) : authStatus?.google.available ? (
                 <button
                   onClick={handleConnectGoogle}
-                  className="w-full flex items-center justify-center gap-2.5 text-sm font-medium text-white bg-blue-600 hover:bg-blue-500 px-4 py-3 rounded-xl transition-all active:scale-[0.98]"
+                  className="w-full flex items-center justify-center gap-2.5 text-sm font-medium text-white bg-white/[0.06] hover:bg-white/[0.1] border border-gray-700 px-4 py-3 rounded-xl transition-all active:scale-[0.98]"
                 >
                   <GoogleIcon />
                   Sign in with Google
                 </button>
               ) : (
-                <div className="space-y-3">
-                  <div className="p-4 bg-white/[0.02] border border-gray-800 rounded-xl">
-                    <p className="text-sm text-gray-300 mb-3">
-                      Connect Google in your terminal:
-                    </p>
-                    <div className="bg-black/40 rounded-lg p-3 font-mono text-xs text-gray-300 space-y-1">
-                      <p className="text-gray-500"># one-time setup</p>
-                      <p>cd backend</p>
-                      <p>python setup_google.py</p>
-                    </div>
-                    <p className="text-xs text-gray-500 mt-3 leading-relaxed">
-                      The script walks you through everything. It'll open your browser to sign in with Google — no copy-pasting tokens or IDs.
-                    </p>
-                  </div>
-
-                  <details className="group">
-                    <summary className="text-xs text-gray-500 cursor-pointer hover:text-gray-400 transition-colors flex items-center gap-1">
-                      <svg className="w-3 h-3 transition-transform group-open:rotate-90" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                      </svg>
-                      What does the script do?
-                    </summary>
-                    <div className="mt-2 pl-4 text-xs text-gray-600 space-y-1.5 leading-relaxed">
-                      <p>1. Checks for <span className="text-gray-400 font-mono">credentials.json</span> (tells you how to get it if missing)</p>
-                      <p>2. Opens your browser → you sign into your Google account</p>
-                      <p>3. Saves the auth tokens locally — Gmail and Calendar are now active</p>
-                    </div>
-                  </details>
+                <div className="p-3.5 bg-white/[0.02] border border-gray-800 rounded-xl">
+                  <p className="text-xs text-gray-500 leading-relaxed">
+                    Google sign-in is not available yet. The app administrator needs to configure Google OAuth credentials.
+                  </p>
                 </div>
               )}
             </section>
