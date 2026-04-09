@@ -1,0 +1,9 @@
+__pycache__/
+*.pyc
+.env
+data/history.db
+data/google_tokens.json
+data/interac_ledger.json
+credentials.json
+node_modules/
+dist/
