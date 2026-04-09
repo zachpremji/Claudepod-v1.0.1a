@@ -4,6 +4,7 @@ __pycache__/
 data/history.db
 data/google_tokens.json
 data/interac_ledger.json
+data/user_settings.json
 credentials.json
 node_modules/
 dist/

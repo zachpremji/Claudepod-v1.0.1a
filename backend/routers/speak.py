@@ -14,15 +14,19 @@ class SpeakRequest(BaseModel):
 @router.post("/speak")
 async def speak(body: SpeakRequest):
     try:
-        client = ElevenLabs(api_key=settings.ELEVENLABS_API_KEY)
+        api_key = settings.ELEVENLABS_API_KEY
+        if not api_key:
+            raise HTTPException(status_code=400, detail="ElevenLabs API key not configured")
+        client = ElevenLabs(api_key=api_key)
         audio = client.generate(
             text=body.text,
             voice=settings.ELEVENLABS_VOICE_ID,
             model="eleven_monolingual_v1",
         )
         return StreamingResponse(audio, media_type="audio/mpeg")
+    except HTTPException:
+        raise
     except Exception as e:
         import traceback
-
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))

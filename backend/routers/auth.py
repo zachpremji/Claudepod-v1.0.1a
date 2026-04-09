@@ -2,8 +2,9 @@ import json
 from pathlib import Path
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import RedirectResponse
+from pydantic import BaseModel
 from google_auth_oauthlib.flow import Flow
-from config import settings
+from config import settings, save_user_settings, get_setting
 
 router = APIRouter(prefix="/auth")
 
@@ -53,8 +54,6 @@ async def auth_status():
     tokens = get_stored_tokens()
     google_connected = tokens is not None
     has_google_creds = bool(settings.GOOGLE_CLIENT_ID and settings.GOOGLE_CLIENT_SECRET)
-    has_elevenlabs = bool(settings.ELEVENLABS_API_KEY)
-    has_anthropic = bool(settings.ANTHROPIC_API_KEY)
 
     return {
         "google": {
@@ -62,12 +61,40 @@ async def auth_status():
             "available": has_google_creds,
         },
         "elevenlabs": {
-            "connected": has_elevenlabs,
+            "connected": bool(settings.ELEVENLABS_API_KEY),
         },
         "anthropic": {
-            "connected": has_anthropic,
+            "connected": bool(settings.ANTHROPIC_API_KEY),
         },
     }
+
+
+class SaveKeysRequest(BaseModel):
+    anthropic_api_key: str | None = None
+    elevenlabs_api_key: str | None = None
+    elevenlabs_voice_id: str | None = None
+    google_client_id: str | None = None
+    google_client_secret: str | None = None
+
+
+@router.post("/keys")
+async def save_keys(body: SaveKeysRequest):
+    data = {}
+    if body.anthropic_api_key is not None:
+        data["ANTHROPIC_API_KEY"] = body.anthropic_api_key
+    if body.elevenlabs_api_key is not None:
+        data["ELEVENLABS_API_KEY"] = body.elevenlabs_api_key
+    if body.elevenlabs_voice_id is not None:
+        data["ELEVENLABS_VOICE_ID"] = body.elevenlabs_voice_id
+    if body.google_client_id is not None:
+        data["GOOGLE_CLIENT_ID"] = body.google_client_id
+    if body.google_client_secret is not None:
+        data["GOOGLE_CLIENT_SECRET"] = body.google_client_secret
+
+    if data:
+        save_user_settings(data)
+
+    return {"status": "saved"}
 
 
 @router.get("/google/start")
@@ -75,7 +102,7 @@ async def google_start():
     if not settings.GOOGLE_CLIENT_ID or not settings.GOOGLE_CLIENT_SECRET:
         raise HTTPException(
             status_code=400,
-            detail="Google OAuth credentials not configured. Add GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET to backend/.env",
+            detail="Google OAuth credentials not configured. Add them in Settings first.",
         )
 
     flow = _build_flow()

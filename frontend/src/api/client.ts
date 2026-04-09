@@ -44,3 +44,18 @@ export async function disconnectGoogle(): Promise<void> {
   const res = await fetch(`${BASE}/auth/google/disconnect`, { method: 'POST' })
   if (!res.ok) throw new Error('Failed to disconnect')
 }
+
+export async function saveKeys(keys: {
+  anthropic_api_key?: string
+  elevenlabs_api_key?: string
+  elevenlabs_voice_id?: string
+  google_client_id?: string
+  google_client_secret?: string
+}): Promise<void> {
+  const res = await fetch(`${BASE}/auth/keys`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(keys),
+  })
+  if (!res.ok) throw new Error('Failed to save keys')
+}

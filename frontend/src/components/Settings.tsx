@@ -1,5 +1,6 @@
+import { useState } from 'react'
 import { AuthStatus } from '../types'
-import { getGoogleAuthUrl, disconnectGoogle } from '../api/client'
+import { getGoogleAuthUrl, disconnectGoogle, saveKeys } from '../api/client'
 
 interface SettingsProps {
   isOpen: boolean
@@ -9,6 +10,36 @@ interface SettingsProps {
 }
 
 export default function Settings({ isOpen, onClose, authStatus, onRefreshAuth }: SettingsProps) {
+  const [anthropicKey, setAnthropicKey] = useState('')
+  const [elevenLabsKey, setElevenLabsKey] = useState('')
+  const [googleClientId, setGoogleClientId] = useState('')
+  const [googleClientSecret, setGoogleClientSecret] = useState('')
+  const [saving, setSaving] = useState<string | null>(null)
+  const [toast, setToast] = useState<string | null>(null)
+
+  const showToast = (msg: string) => {
+    setToast(msg)
+    setTimeout(() => setToast(null), 2500)
+  }
+
+  const handleSaveKey = async (
+    key: string,
+    payload: Parameters<typeof saveKeys>[0],
+    clearFn: () => void
+  ) => {
+    setSaving(key)
+    try {
+      await saveKeys(payload)
+      clearFn()
+      onRefreshAuth()
+      showToast('Saved')
+    } catch {
+      showToast('Failed to save')
+    } finally {
+      setSaving(null)
+    }
+  }
+
   const handleConnectGoogle = () => {
     window.location.href = getGoogleAuthUrl()
   }
@@ -36,7 +67,7 @@ export default function Settings({ isOpen, onClose, authStatus, onRefreshAuth }:
       >
         <div className="flex flex-col h-full">
           {/* Header */}
-          <div className="flex items-center justify-between px-6 py-5 border-b border-white/[0.06]">
+          <div className="flex items-center justify-between px-6 py-5 border-b border-gray-800">
             <h2 className="text-lg font-semibold text-white">Settings</h2>
             <button
               onClick={onClose}
@@ -49,118 +80,178 @@ export default function Settings({ isOpen, onClose, authStatus, onRefreshAuth }:
           </div>
 
           {/* Content */}
-          <div className="flex-1 overflow-y-auto px-6 py-6 space-y-6">
-            {/* Connected Services */}
-            <div>
-              <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-4">
-                Connected Services
-              </h3>
-              <div className="space-y-3">
-                {/* Google (Gmail + Calendar) */}
-                <ServiceCard
-                  name="Google"
-                  description="Gmail & Google Calendar"
-                  icon={
-                    <svg className="w-5 h-5" viewBox="0 0 24 24">
-                      <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" />
-                      <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-                      <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
-                      <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
-                    </svg>
-                  }
-                  connected={authStatus?.google.connected ?? false}
-                  available={authStatus?.google.available ?? false}
-                  onConnect={handleConnectGoogle}
-                  onDisconnect={handleDisconnectGoogle}
-                  unavailableMessage="Add GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET to backend/.env"
-                />
+          <div className="flex-1 overflow-y-auto px-6 py-6 space-y-8">
 
-                {/* Anthropic (Claude) */}
-                <ServiceCard
-                  name="Claude AI"
-                  description="Anthropic API"
-                  icon={
-                    <svg className="w-5 h-5 text-orange-400" viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M12 2L2 19.5h20L12 2zm0 4l7 13.5H5L12 6z" />
-                    </svg>
-                  }
-                  connected={authStatus?.anthropic.connected ?? false}
-                  available={true}
-                  envOnly
-                  unavailableMessage="Add ANTHROPIC_API_KEY to backend/.env"
-                />
+            {/* Claude AI */}
+            <section>
+              <SectionHeader
+                title="Claude AI"
+                subtitle="Required — powers all conversations"
+                connected={authStatus?.anthropic.connected ?? false}
+              />
+              <KeyInput
+                placeholder="sk-ant-api03-..."
+                value={anthropicKey}
+                onChange={setAnthropicKey}
+                onSave={() =>
+                  handleSaveKey('anthropic', { anthropic_api_key: anthropicKey }, () => setAnthropicKey(''))
+                }
+                saving={saving === 'anthropic'}
+                connected={authStatus?.anthropic.connected ?? false}
+              />
+            </section>
 
-                {/* ElevenLabs */}
-                <ServiceCard
-                  name="ElevenLabs"
-                  description="Voice synthesis"
-                  icon={
-                    <svg className="w-5 h-5 text-violet-400" viewBox="0 0 24 24" fill="currentColor">
-                      <rect x="9" y="2" width="2" height="20" rx="1" />
-                      <rect x="13" y="5" width="2" height="14" rx="1" />
-                    </svg>
-                  }
-                  connected={authStatus?.elevenlabs.connected ?? false}
-                  available={true}
-                  envOnly
-                  unavailableMessage="Add ELEVENLABS_API_KEY to backend/.env"
-                />
-              </div>
-            </div>
+            {/* ElevenLabs */}
+            <section>
+              <SectionHeader
+                title="ElevenLabs"
+                subtitle="Optional — voice synthesis (falls back to browser TTS)"
+                connected={authStatus?.elevenlabs.connected ?? false}
+              />
+              <KeyInput
+                placeholder="ElevenLabs API key"
+                value={elevenLabsKey}
+                onChange={setElevenLabsKey}
+                onSave={() =>
+                  handleSaveKey('elevenlabs', { elevenlabs_api_key: elevenLabsKey }, () => setElevenLabsKey(''))
+                }
+                saving={saving === 'elevenlabs'}
+                connected={authStatus?.elevenlabs.connected ?? false}
+              />
+            </section>
 
-            {/* Stubbed Services */}
-            <div>
-              <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-4">
+            {/* Google */}
+            <section>
+              <SectionHeader
+                title="Google"
+                subtitle="Gmail & Calendar — enter OAuth credentials, then connect"
+                connected={authStatus?.google.connected ?? false}
+              />
+
+              {authStatus?.google.connected ? (
+                <div className="flex items-center justify-between p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                    <span className="text-sm text-emerald-300">Google connected</span>
+                  </div>
+                  <button
+                    onClick={handleDisconnectGoogle}
+                    className="text-xs text-gray-400 hover:text-red-400 transition-colors"
+                  >
+                    Disconnect
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <div className="space-y-2">
+                    <input
+                      type="text"
+                      placeholder="Google Client ID"
+                      value={googleClientId}
+                      onChange={(e) => setGoogleClientId(e.target.value)}
+                      className="w-full bg-white/[0.04] text-white text-sm px-3 py-2.5 rounded-lg border border-gray-700 focus:border-blue-500/50 focus:outline-none placeholder-gray-600"
+                    />
+                    <input
+                      type="password"
+                      placeholder="Google Client Secret"
+                      value={googleClientSecret}
+                      onChange={(e) => setGoogleClientSecret(e.target.value)}
+                      className="w-full bg-white/[0.04] text-white text-sm px-3 py-2.5 rounded-lg border border-gray-700 focus:border-blue-500/50 focus:outline-none placeholder-gray-600"
+                    />
+                  </div>
+
+                  {googleClientId && googleClientSecret ? (
+                    <div className="flex gap-2">
+                      <button
+                        onClick={async () => {
+                          await handleSaveKey('google', {
+                            google_client_id: googleClientId,
+                            google_client_secret: googleClientSecret,
+                          }, () => {
+                            setGoogleClientId('')
+                            setGoogleClientSecret('')
+                          })
+                          // After saving credentials, redirect to Google OAuth
+                          setTimeout(() => {
+                            window.location.href = getGoogleAuthUrl()
+                          }, 500)
+                        }}
+                        disabled={saving === 'google'}
+                        className="flex-1 text-sm font-medium text-white bg-blue-600 hover:bg-blue-500 px-4 py-2.5 rounded-lg transition-all disabled:opacity-50"
+                      >
+                        {saving === 'google' ? 'Saving...' : 'Save & Connect Google'}
+                      </button>
+                    </div>
+                  ) : authStatus?.google.available ? (
+                    <button
+                      onClick={handleConnectGoogle}
+                      className="w-full text-sm font-medium text-white bg-blue-600 hover:bg-blue-500 px-4 py-2.5 rounded-lg transition-all"
+                    >
+                      Connect Google Account
+                    </button>
+                  ) : (
+                    <p className="text-xs text-gray-600">
+                      Enter your Google OAuth credentials above to connect.
+                    </p>
+                  )}
+                </div>
+              )}
+
+              <p className="mt-2.5 text-[11px] text-gray-600 leading-relaxed">
+                Create credentials at Google Cloud Console → APIs & Services → Credentials → OAuth 2.0 Client ID (Web application). Add <span className="text-gray-500">http://localhost:8000/auth/google/callback</span> as a redirect URI.
+              </p>
+            </section>
+
+            {/* Coming Soon */}
+            <section>
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-600 mb-3">
                 Coming Soon
               </h3>
-              <div className="space-y-3">
-                <StubCard name="SMS (Twilio)" description="Send text messages" />
-                <StubCard name="Interac e-Transfer" description="Send money (stubbed)" />
+              <div className="space-y-2 opacity-50">
+                <div className="flex items-center gap-3 p-3 bg-white/[0.02] border border-white/[0.04] rounded-xl">
+                  <span className="text-sm text-gray-500">SMS (Twilio)</span>
+                </div>
+                <div className="flex items-center gap-3 p-3 bg-white/[0.02] border border-white/[0.04] rounded-xl">
+                  <span className="text-sm text-gray-500">Interac e-Transfer</span>
+                </div>
               </div>
-            </div>
+            </section>
           </div>
 
           {/* Footer */}
-          <div className="px-6 py-4 border-t border-white/[0.06]">
+          <div className="px-6 py-4 border-t border-gray-800">
             <p className="text-[11px] text-gray-600 text-center">
-              Claude Pod v1.0
+              Keys are stored locally on your server. Never shared externally.
             </p>
           </div>
         </div>
       </div>
+
+      {/* Toast */}
+      {toast && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[60] px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white shadow-xl animate-fade-in">
+          {toast}
+        </div>
+      )}
+
+      <style>{`
+        @keyframes fade-in {
+          from { opacity: 0; transform: translate(-50%, 8px); }
+          to { opacity: 1; transform: translate(-50%, 0); }
+        }
+        .animate-fade-in { animation: fade-in 0.2s ease-out; }
+      `}</style>
     </>
   )
 }
 
-function ServiceCard({
-  name,
-  description,
-  icon,
-  connected,
-  available,
-  onConnect,
-  onDisconnect,
-  envOnly,
-  unavailableMessage,
-}: {
-  name: string
-  description: string
-  icon: React.ReactNode
-  connected: boolean
-  available: boolean
-  onConnect?: () => void
-  onDisconnect?: () => void
-  envOnly?: boolean
-  unavailableMessage: string
-}) {
+
+function SectionHeader({ title, subtitle, connected }: { title: string; subtitle: string; connected: boolean }) {
   return (
-    <div className="flex items-center gap-3 p-3.5 bg-white/[0.03] border border-white/[0.06] rounded-xl">
-      <div className="shrink-0 w-10 h-10 flex items-center justify-center rounded-lg bg-white/[0.04]">
-        {icon}
-      </div>
-      <div className="flex-1 min-w-0">
+    <div className="flex items-start justify-between mb-3">
+      <div>
         <div className="flex items-center gap-2">
-          <span className="text-sm font-medium text-white">{name}</span>
+          <h3 className="text-sm font-semibold text-white">{title}</h3>
           {connected && (
             <span className="flex items-center gap-1 text-[10px] font-medium text-emerald-400">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
@@ -168,45 +259,44 @@ function ServiceCard({
             </span>
           )}
         </div>
-        <p className="text-xs text-gray-500 mt-0.5">{description}</p>
-      </div>
-      <div className="shrink-0">
-        {connected && onDisconnect && !envOnly ? (
-          <button
-            onClick={onDisconnect}
-            className="text-xs text-gray-500 hover:text-red-400 transition-colors px-2 py-1"
-          >
-            Disconnect
-          </button>
-        ) : !connected && available && !envOnly ? (
-          <button
-            onClick={onConnect}
-            className="text-xs font-medium text-blue-400 hover:text-blue-300 bg-blue-500/10 hover:bg-blue-500/20 px-3 py-1.5 rounded-lg transition-all"
-          >
-            Connect
-          </button>
-        ) : !connected ? (
-          <span className="text-[10px] text-gray-600 max-w-[120px] text-right leading-tight block">
-            {unavailableMessage}
-          </span>
-        ) : null}
+        <p className="text-xs text-gray-500 mt-0.5">{subtitle}</p>
       </div>
     </div>
   )
 }
 
-function StubCard({ name, description }: { name: string; description: string }) {
+
+function KeyInput({
+  placeholder,
+  value,
+  onChange,
+  onSave,
+  saving,
+  connected,
+}: {
+  placeholder: string
+  value: string
+  onChange: (v: string) => void
+  onSave: () => void
+  saving: boolean
+  connected: boolean
+}) {
   return (
-    <div className="flex items-center gap-3 p-3.5 bg-white/[0.02] border border-white/[0.04] rounded-xl opacity-50">
-      <div className="shrink-0 w-10 h-10 flex items-center justify-center rounded-lg bg-white/[0.03]">
-        <svg className="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-      </div>
-      <div className="flex-1">
-        <span className="text-sm font-medium text-gray-500">{name}</span>
-        <p className="text-xs text-gray-600 mt-0.5">{description}</p>
-      </div>
+    <div className="flex gap-2">
+      <input
+        type="password"
+        placeholder={connected ? '••••••••••••••••' : placeholder}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="flex-1 bg-white/[0.04] text-white text-sm px-3 py-2.5 rounded-lg border border-gray-700 focus:border-blue-500/50 focus:outline-none placeholder-gray-600"
+      />
+      <button
+        onClick={onSave}
+        disabled={!value.trim() || saving}
+        className="px-4 py-2.5 text-sm font-medium bg-blue-600 hover:bg-blue-500 disabled:opacity-30 disabled:hover:bg-blue-600 rounded-lg transition-all"
+      >
+        {saving ? '...' : connected ? 'Update' : 'Save'}
+      </button>
     </div>
   )
 }
