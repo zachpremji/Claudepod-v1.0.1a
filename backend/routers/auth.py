@@ -4,7 +4,7 @@ from fastapi import APIRouter, HTTPException
 from fastapi.responses import RedirectResponse
 from pydantic import BaseModel
 from google_auth_oauthlib.flow import Flow
-from config import settings, save_user_settings, get_setting
+from config import settings, save_user_settings
 
 router = APIRouter(prefix="/auth")
 
@@ -52,12 +52,11 @@ def clear_tokens():
 @router.get("/status")
 async def auth_status():
     tokens = get_stored_tokens()
-    google_connected = tokens is not None
     has_google_creds = bool(settings.GOOGLE_CLIENT_ID and settings.GOOGLE_CLIENT_SECRET)
 
     return {
         "google": {
-            "connected": google_connected,
+            "connected": tokens is not None,
             "available": has_google_creds,
         },
         "elevenlabs": {
@@ -70,30 +69,19 @@ async def auth_status():
 
 
 class SaveKeysRequest(BaseModel):
-    anthropic_api_key: str | None = None
     elevenlabs_api_key: str | None = None
     elevenlabs_voice_id: str | None = None
-    google_client_id: str | None = None
-    google_client_secret: str | None = None
 
 
 @router.post("/keys")
 async def save_keys(body: SaveKeysRequest):
     data = {}
-    if body.anthropic_api_key is not None:
-        data["ANTHROPIC_API_KEY"] = body.anthropic_api_key
     if body.elevenlabs_api_key is not None:
         data["ELEVENLABS_API_KEY"] = body.elevenlabs_api_key
     if body.elevenlabs_voice_id is not None:
         data["ELEVENLABS_VOICE_ID"] = body.elevenlabs_voice_id
-    if body.google_client_id is not None:
-        data["GOOGLE_CLIENT_ID"] = body.google_client_id
-    if body.google_client_secret is not None:
-        data["GOOGLE_CLIENT_SECRET"] = body.google_client_secret
-
     if data:
         save_user_settings(data)
-
     return {"status": "saved"}
 
 
@@ -102,7 +90,7 @@ async def google_start():
     if not settings.GOOGLE_CLIENT_ID or not settings.GOOGLE_CLIENT_SECRET:
         raise HTTPException(
             status_code=400,
-            detail="Google OAuth credentials not configured. Add them in Settings first.",
+            detail="Google OAuth not configured. Add GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET to backend/.env",
         )
 
     flow = _build_flow()

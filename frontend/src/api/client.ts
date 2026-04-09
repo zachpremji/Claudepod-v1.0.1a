@@ -46,11 +46,8 @@ export async function disconnectGoogle(): Promise<void> {
 }
 
 export async function saveKeys(keys: {
-  anthropic_api_key?: string
   elevenlabs_api_key?: string
   elevenlabs_voice_id?: string
-  google_client_id?: string
-  google_client_secret?: string
 }): Promise<void> {
   const res = await fetch(`${BASE}/auth/keys`, {
     method: 'POST',

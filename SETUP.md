@@ -4,16 +4,10 @@
 
 - **Python 3.11+**
 - **Node.js 18+** and npm
-- An **Anthropic** API key ([console.anthropic.com](https://console.anthropic.com))
-
-### Optional (for full features)
-
-- **Google Cloud** project with Gmail API + Calendar API enabled (for Gmail & Calendar)
-- **ElevenLabs** account (for voice synthesis — falls back to browser TTS without it)
 
 ---
 
-## 1. Backend Setup
+## 1. Backend
 
 ```bash
 cd backend
@@ -21,32 +15,19 @@ pip install -r requirements.txt
 cp .env.example .env
 ```
 
-Edit `backend/.env` with your keys:
+Edit `backend/.env` — the only **required** key:
 
 ```
 ANTHROPIC_API_KEY=sk-ant-...
-ELEVENLABS_API_KEY=...          # optional
-ELEVENLABS_VOICE_ID=21m00Tcm4TlvDq8ikWAM
-GOOGLE_CLIENT_ID=...            # optional, for Gmail/Calendar
-GOOGLE_CLIENT_SECRET=...        # optional, for Gmail/Calendar
 ```
 
-### Google Cloud Setup (optional)
-
-1. Go to [Google Cloud Console](https://console.cloud.google.com/)
-2. Create a project, enable **Gmail API** and **Google Calendar API**
-3. Go to **Credentials** → **Create Credentials** → **OAuth 2.0 Client ID**
-4. Choose **Web application** as the type
-5. Add `http://localhost:8000/auth/google/callback` as an authorized redirect URI
-6. Copy the Client ID and Client Secret into your `.env`
-
-### Start the Backend
+Start the backend:
 
 ```bash
 uvicorn main:app --reload --port 8000
 ```
 
-## 2. Frontend Setup
+## 2. Frontend
 
 In a separate terminal:
 
@@ -56,14 +37,42 @@ npm install
 npm run dev
 ```
 
-Open **http://localhost:5173**.
+Open **http://localhost:5173** — you can chat with Claude immediately.
+
+---
 
 ## 3. Connect Services (in the app)
 
-Click the **gear icon** in the top-right of the webapp to open Settings:
+Click the **gear icon** in the top-right to open Settings.
 
-- **Google (Gmail + Calendar)**: Click "Connect" — you'll be redirected to Google's OAuth consent screen. After authorizing, you're redirected back and connected.
-- **Claude AI / ElevenLabs**: These are configured via `.env` — the Settings panel shows their connection status.
+### ElevenLabs (optional voice)
+
+Paste your ElevenLabs API key in Settings. Without it, the app uses browser TTS.
+
+### Google — Gmail & Calendar (optional)
+
+Google requires OAuth credentials. You set these up once as the app developer:
+
+1. Go to [Google Cloud Console](https://console.cloud.google.com/)
+2. Create a new project (or select an existing one)
+3. Navigate to **APIs & Services → Library**
+4. Enable **Gmail API** and **Google Calendar API**
+5. Go to **APIs & Services → Credentials**
+6. Click **Create Credentials → OAuth 2.0 Client ID**
+7. If prompted, configure the **OAuth consent screen** first:
+   - Choose **External**
+   - Add your email as a test user
+8. Application type: **Web application**
+9. Add authorized redirect URI: `http://localhost:8000/auth/google/callback`
+10. Copy the **Client ID** and **Client Secret** into `backend/.env`:
+
+```
+GOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=GOCSPX-...
+```
+
+11. Restart the backend
+12. In the app Settings, click **Sign in with Google** and authorize
 
 ---
 
@@ -71,7 +80,7 @@ Click the **gear icon** in the top-right of the webapp to open Settings:
 
 - **Push-to-talk** requires **Chrome** or **Edge** (Firefox doesn't support `webkitSpeechRecognition`)
 - SMS and Interac e-Transfer are **stubbed** — they log but don't connect to real services
-- Gmail and Calendar integrations are **real** and will send actual emails / create events
-- If ElevenLabs TTS fails, the app automatically falls back to browser speech synthesis
+- Gmail and Calendar are **real** — they send actual emails and create actual events
 - Conversation history: `backend/data/history.db` (SQLite, auto-created)
 - Google tokens: `backend/data/google_tokens.json` (auto-created after OAuth)
+- ElevenLabs key: `backend/data/user_settings.json` (auto-created from Settings)

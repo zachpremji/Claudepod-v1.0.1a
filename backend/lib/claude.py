@@ -114,10 +114,9 @@ TOOL_EXECUTORS = {
 
 
 def call_claude(system: str, messages: list, tools: list):
-    api_key = settings.ANTHROPIC_API_KEY
-    if not api_key:
-        raise RuntimeError("Anthropic API key not configured. Add it in Settings.")
-    client = anthropic.Anthropic(api_key=api_key)
+    if not settings.ANTHROPIC_API_KEY:
+        raise RuntimeError("Anthropic API key not configured. Add ANTHROPIC_API_KEY to backend/.env")
+    client = anthropic.Anthropic(api_key=settings.ANTHROPIC_API_KEY)
     return client.messages.create(
         model="claude-sonnet-4-20250514",
         max_tokens=1024,
