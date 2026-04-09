@@ -19,3 +19,9 @@ export interface ChatResponse {
     tool_call: object
   }
 }
+
+export interface AuthStatus {
+  google: { connected: boolean; available: boolean }
+  elevenlabs: { connected: boolean }
+  anthropic: { connected: boolean }
+}

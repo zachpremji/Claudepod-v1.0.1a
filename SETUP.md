@@ -4,83 +4,49 @@
 
 - **Python 3.11+**
 - **Node.js 18+** and npm
-- A **Google Cloud** project with Gmail API and Calendar API enabled
-- An **Anthropic** API key
-- An **ElevenLabs** account (for text-to-speech)
+- An **Anthropic** API key ([console.anthropic.com](https://console.anthropic.com))
+
+### Optional (for full features)
+
+- **Google Cloud** project with Gmail API + Calendar API enabled (for Gmail & Calendar)
+- **ElevenLabs** account (for voice synthesis — falls back to browser TTS without it)
 
 ---
 
-## 1. Clone the Repository
-
-```bash
-git clone <repo-url>
-cd claude-pod
-```
-
-## 2. Backend Setup
-
-### Install Python Dependencies
+## 1. Backend Setup
 
 ```bash
 cd backend
 pip install -r requirements.txt
-```
-
-### Google Cloud Console Setup
-
-1. Go to [Google Cloud Console](https://console.cloud.google.com/)
-2. Create a new project (or select an existing one)
-3. Enable the **Gmail API** and **Google Calendar API**
-4. Go to **Credentials** → **Create Credentials** → **OAuth 2.0 Client ID**
-5. Choose **Desktop App** as the application type
-6. Download the credentials JSON file
-7. Save it as `backend/credentials.json`
-
-### Get Google Refresh Token
-
-Run the one-time auth script:
-
-```bash
-cd backend
-python setup_google_auth.py
-```
-
-This opens your browser for OAuth consent. After authorizing, it prints a `GOOGLE_REFRESH_TOKEN` — copy it.
-
-### ElevenLabs Setup
-
-1. Sign up at [ElevenLabs](https://elevenlabs.io/)
-2. Get your API key from the profile page
-3. Pick a voice ID (default Rachel = `21m00Tcm4TlvDq8ikWAM`)
-
-### Configure Environment
-
-```bash
-cd backend
 cp .env.example .env
 ```
 
-Fill in your `.env`:
+Edit `backend/.env` with your keys:
 
 ```
 ANTHROPIC_API_KEY=sk-ant-...
-ELEVENLABS_API_KEY=...
+ELEVENLABS_API_KEY=...          # optional
 ELEVENLABS_VOICE_ID=21m00Tcm4TlvDq8ikWAM
-GOOGLE_CLIENT_ID=...
-GOOGLE_CLIENT_SECRET=...
-GOOGLE_REFRESH_TOKEN=...
+GOOGLE_CLIENT_ID=...            # optional, for Gmail/Calendar
+GOOGLE_CLIENT_SECRET=...        # optional, for Gmail/Calendar
 ```
 
-You can find your Google Client ID and Secret in the downloaded `credentials.json` file.
+### Google Cloud Setup (optional)
+
+1. Go to [Google Cloud Console](https://console.cloud.google.com/)
+2. Create a project, enable **Gmail API** and **Google Calendar API**
+3. Go to **Credentials** → **Create Credentials** → **OAuth 2.0 Client ID**
+4. Choose **Web application** as the type
+5. Add `http://localhost:8000/auth/google/callback` as an authorized redirect URI
+6. Copy the Client ID and Client Secret into your `.env`
 
 ### Start the Backend
 
 ```bash
-cd backend
 uvicorn main:app --reload --port 8000
 ```
 
-## 3. Frontend Setup
+## 2. Frontend Setup
 
 In a separate terminal:
 
@@ -90,20 +56,22 @@ npm install
 npm run dev
 ```
 
-The app will be available at **http://localhost:5173**.
+Open **http://localhost:5173**.
+
+## 3. Connect Services (in the app)
+
+Click the **gear icon** in the top-right of the webapp to open Settings:
+
+- **Google (Gmail + Calendar)**: Click "Connect" — you'll be redirected to Google's OAuth consent screen. After authorizing, you're redirected back and connected.
+- **Claude AI / ElevenLabs**: These are configured via `.env` — the Settings panel shows their connection status.
 
 ---
 
 ## Notes
 
 - **Push-to-talk** requires **Chrome** or **Edge** (Firefox doesn't support `webkitSpeechRecognition`)
-- SMS and Interac e-Transfer are **stubbed** — they log actions but don't connect to real services
-- Gmail and Calendar integrations are **real** and will send actual emails / create actual events
-- Conversation history is stored in `backend/data/history.db` (SQLite, auto-created)
-- Interac transfer logs are stored in `backend/data/interac_ledger.json` (auto-created)
-
-## Troubleshooting
-
-- If Google auth fails, delete `backend/credentials.json` and re-download from Google Cloud Console
-- If TTS fails, the frontend automatically falls back to browser speech synthesis
-- Check the uvicorn console for detailed error tracebacks
+- SMS and Interac e-Transfer are **stubbed** — they log but don't connect to real services
+- Gmail and Calendar integrations are **real** and will send actual emails / create events
+- If ElevenLabs TTS fails, the app automatically falls back to browser speech synthesis
+- Conversation history: `backend/data/history.db` (SQLite, auto-created)
+- Google tokens: `backend/data/google_tokens.json` (auto-created after OAuth)

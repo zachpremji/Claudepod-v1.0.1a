@@ -38,9 +38,7 @@ export default function PushToTalkButton({
     }
   }, [isHolding, stopRecognition])
 
-  if (!isSupported) {
-    return null
-  }
+  if (!isSupported) return null
 
   return (
     <button
@@ -48,21 +46,19 @@ export default function PushToTalkButton({
       onPointerUp={handlePointerUp}
       onPointerLeave={handlePointerUp}
       disabled={disabled}
-      className={`flex items-center justify-center w-11 h-11 rounded-full transition-colors ${
+      className={`relative flex items-center justify-center w-11 h-11 rounded-xl transition-all active:scale-95 ${
         isHolding
-          ? 'bg-red-600 scale-110'
-          : 'bg-gray-700 hover:bg-gray-600'
-      } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+          ? 'bg-red-500 shadow-lg shadow-red-500/25'
+          : 'bg-white/[0.06] border border-white/[0.08] hover:bg-white/[0.1]'
+      } ${disabled ? 'opacity-30 cursor-not-allowed' : ''}`}
       title="Hold to talk"
     >
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 24 24"
-        fill="currentColor"
-        className="w-5 h-5"
-      >
-        <path d="M12 14a3 3 0 003-3V5a3 3 0 10-6 0v6a3 3 0 003 3z" />
-        <path d="M17 11a1 1 0 10-2 0 3 3 0 01-6 0 1 1 0 10-2 0 5 5 0 004 4.9V18H9a1 1 0 100 2h6a1 1 0 100-2h-2v-2.1A5 5 0 0017 11z" />
+      {isHolding && (
+        <span className="absolute inset-0 rounded-xl animate-ping bg-red-500/30" />
+      )}
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4.5 h-4.5 relative z-10">
+        <path d="M8.25 4.5a3.75 3.75 0 117.5 0v8.25a3.75 3.75 0 11-7.5 0V4.5z" />
+        <path d="M6 10.5a.75.75 0 01.75.75v1.5a5.25 5.25 0 1010.5 0v-1.5a.75.75 0 011.5 0v1.5a6.751 6.751 0 01-6 6.709v2.291h3a.75.75 0 010 1.5h-7.5a.75.75 0 010-1.5h3v-2.291a6.751 6.751 0 01-6-6.709v-1.5A.75.75 0 016 10.5z" />
       </svg>
     </button>
   )
